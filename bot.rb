@@ -9,7 +9,7 @@ def btkiki_get(str)
     baseurl = "www.btkiki.com/s/"
     url = baseurl + "#{str}.html"
     header = "magnet:?xt=urn:btih:"
-    
+
     begin
         response = RestClient.get url
     rescue Exception => e
@@ -36,10 +36,10 @@ def javlibrary_get(str)
     doc = Nokogiri::HTML(response.body)
     details, genres, video_genres, video_jacket_img = Array.new, Array.new, String.new, String.new
 
-    doc.search('//div[@id="video_info"]/div[@class="item"]/table/tr/td[@class="text"]').map do |row|    
+    doc.search('//div[@id="video_info"]/div[@class="item"]/table/tr/td[@class="text"]').map do |row|
         details << row.children.text
     end
-    
+
     doc.search('//div[@id="video_genres"]/table/tr/td[@class="text"]/span[@class="genre"]/a').each do |row|
         video_genres << row.children.text << " "
     end
@@ -47,7 +47,7 @@ def javlibrary_get(str)
     doc.search('//img[@id="video_jacket_img"]').each do |row|
         video_jacket_img = row['src']
     end
-    
+
     information = Hash.new
     information['video_info'] =  "ID: #{details[0]}\nDATE: #{details[1]}\nDIRECTOR: #{details[2]}\nMAKER: #{details[3]}\nLABEL: #{details[4]}\nCAST: #{details[-1]}\nGENRES: #{video_genres}"
     information['video_jacket_img'] = video_jacket_img
@@ -85,6 +85,7 @@ Telegram::Bot::Client.run(TOKEN) do |bot|
                     bot.api.send_message(chat_id: message.chat.id, text: "#{result}")
                     bot.api.send_message(chat_id: message.chat.id, text: "你要的车牌太新啦，还没有收录") if result.size == 0
                 when '/INFO'
+                    next if substr[1] == nil
                     result = javlibrary_get(substr[1])
                     bot.api.send_chat_action(chat_id: message.chat.id, action: "upload_photo")
                     bot.api.send_photo(chat_id: message.chat.id, photo: "#{result['video_jacket_img']}", caption: "#{result['video_info']}")
