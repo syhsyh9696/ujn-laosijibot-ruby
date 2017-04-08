@@ -17,7 +17,7 @@ To launch telegram bot
 ```bash
 setsid ruby bot.rb
 ```
-Remember! 'proxychains' is needed if this script has been deployed in PRC[People's Republic of China]
+Remember! 'proxychains' is needed if this script has been deployed in PRC[People's Republic of China].
 
 # How to use
 In dialog box @ujnphotobot
@@ -27,4 +27,4 @@ In dialog box @ujnphotobot
 ```
 
 # Contact Me
-You can write me via telegram @syhsyh9696 if you have some questions.
+Contact me via telegram @syhsyh9696 if you have some questions.
