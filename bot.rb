@@ -3,6 +3,7 @@
 require 'telegram/bot'
 require 'nokogiri'
 require 'rest-client'
+require 'mysql2'
 require_relative './lib/unicorn.rb'
 
 def btkiki_get(str)
@@ -53,6 +54,26 @@ def javlibrary_get(str)
     information['video_jacket_img'] = video_jacket_img
 
     return information
+end
+
+def javlibrary(str)
+    client = Mysql2::Client.new(:host => "127.0.0.1",
+                                :username => "root",
+                                :password => "???",
+                                :database => "javlibrary")
+
+    result = client.query("SELECT * FROM video WHERE video.license='#{str}'")
+    return javlibrary_get(str) if result.empty?
+
+    information = Hash.new
+    result.each do |row|
+        information['video_jacket_img'] = row['url']
+        
+
+        
+        information['video_info'] = "ID: #{row['license']}\nDATE: #{row['date']}\nDIRECTOR: #{row['director']}\nMAKER: #{row['maker']}\nLABLE: #{row['label']}\n"
+    end
+
 end
 
 TOKEN = "343074557:AAHjjNpdWYmmhzm0j4egNeCfUebAPNkvU3k"
