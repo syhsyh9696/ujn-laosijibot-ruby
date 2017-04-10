@@ -67,43 +67,35 @@ def javlibrary(str)
 
     information = Hash.new
     result.each do |row|
-        cast_a, genres_a = Array.new, Array.new
-
         # SQL initialize
-        cast_sql = "SELECT video.video_id,video.license,actor.actor_name
-                   FROM
-                   video
+        cast_sql = "SELECT actor.actor_name
+                   FROM video
                    INNER JOIN v2a ON v2a.v2a_fk_video = video.video_id
                    INNER JOIN actor ON v2a.v2a_fk_actor = actor.actor_id
-                   INNER JOIN v2c ON v2c.v2c_fk_video = video.video_id
-                   INNER JOIN category ON v2c.v2c_fk_category = category.category_id
                    WHERE video.license=#{row['license']}"
 
-        genres_sql = "SELECT video.video_id,video.license,category.category_name
-                     FROM
-                     video
-                     INNER JOIN v2a ON v2a.v2a_fk_video = video.video_id
-                     INNER JOIN actor ON v2a.v2a_fk_actor = actor.actor_id
+        genres_sql = "SELECT category.category_name
+                     FROM video
                      INNER JOIN v2c ON v2c.v2c_fk_video = video.video_id
                      INNER JOIN category ON v2c.v2c_fk_category = category.category_id
                      WHERE video.license=#{row['license']}"
 
-        # SQL query
+        # SQL query and add in string
+        cast, genres = String.new, String.new
+        
         client.query(cast_sql).each do |cast_item|
-            cast_a << cast_item['actor_name']
+            cast << "#{cast_item['actor_name']} "
         end
 
         client.query(genres_sql).each do |genres_item|
-            genres_a << genres_item['category_name']
+            genres << "#{genres_item['category_name']} "
         end
-
-        cast = cast_a.uniq.each { |i| cast << i.to_s << " " }
-        genres = genres_a.uniq.each { |i| genres << i.to_s << " "}
         
         information['video_jacket_img'] = row['url']
         information['video_info'] = "ID: #{row['license']}\nDATE: #{row['date']}\nDIRECTOR: #{row['director']}\nMAKER: #{row['maker']}\nLABLE: #{row['label']}\nCAST: #{cast}\nGENRES: #{genres}"
     end
-
+    
+    return information
 end
 
 TOKEN = "343074557:AAHjjNpdWYmmhzm0j4egNeCfUebAPNkvU3k"
