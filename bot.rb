@@ -63,7 +63,7 @@ def javlibrary(str)
                                 :database => "javlibrary")
 
     result = client.query("SELECT * FROM video WHERE video.license='#{str}'")
-    return javlibrary_get(str) if result.empty?
+    return javlibrary_get(str) if result.size == 0
 
     information = Hash.new
     result.each do |row|
