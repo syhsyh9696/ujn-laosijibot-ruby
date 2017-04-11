@@ -59,11 +59,11 @@ end
 def javlibrary(str)
     client = Mysql2::Client.new(:host => "127.0.0.1",
                                 :username => "root",
-                                :password => "???",
+                                :password => "default",
                                 :database => "javlibrary")
 
     result = client.query("SELECT * FROM video WHERE video.license='#{str}'")
-    return javlibrary_get(str) if result.size == 0
+    return javlibrary_get(str) if result.size == 0 
 
     information = Hash.new
     result.each do |row|
@@ -72,23 +72,23 @@ def javlibrary(str)
                    FROM video
                    INNER JOIN v2a ON v2a.v2a_fk_video = video.video_id
                    INNER JOIN actor ON v2a.v2a_fk_actor = actor.actor_id
-                   WHERE video.license=#{row['license']}"
+                   WHERE video.license=\'#{row['license']}\'".chomp
 
         genres_sql = "SELECT category.category_name
                      FROM video
                      INNER JOIN v2c ON v2c.v2c_fk_video = video.video_id
                      INNER JOIN category ON v2c.v2c_fk_category = category.category_id
-                     WHERE video.license=#{row['license']}"
+                     WHERE video.license=\'#{row['license']}\'".chomp
 
         # SQL query and add in string
         cast, genres = String.new, String.new
         
         client.query(cast_sql).each do |cast_item|
-            cast << "#{cast_item['actor_name']} "
+            cast << "#{cast_item["actor_name"]} "
         end
 
         client.query(genres_sql).each do |genres_item|
-            genres << "#{genres_item['category_name']} "
+            genres << "#{genres_item["category_name"]} "
         end
         
         information['video_jacket_img'] = row['url']
@@ -129,7 +129,7 @@ Telegram::Bot::Client.run(TOKEN) do |bot|
                     bot.api.send_message(chat_id: message.chat.id, text: "你要的车牌太新啦，还没有收录") if result.size == 0
                 when '/INFO'
                     next if substr[1] == nil
-                    result = javlibrary_get(substr[1])
+                    result = javlibrary(substr[1])
                     bot.api.send_chat_action(chat_id: message.chat.id, action: "upload_photo")
                     bot.api.send_photo(chat_id: message.chat.id, photo: "#{result['video_jacket_img']}", caption: "#{result['video_info']}")
                 end
