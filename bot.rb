@@ -23,7 +23,7 @@ def btkiki_get(str)
         magnet << header + row['href'].split("/")[-1][0..-6] + "\n\n"
     end
 
-    return magnet
+    magnet
 end
 
 def javlibrary_get(str)
@@ -33,6 +33,8 @@ def javlibrary_get(str)
         response = RestClient.get url
     rescue RestClient::ExceptionWithResponse => err
         response = err.response.follow_redirection
+    rescue
+        return nil
     end
     doc = Nokogiri::HTML(response.body)
     details, genres, video_genres, video_jacket_img = Array.new, Array.new, String.new, String.new
@@ -59,11 +61,14 @@ end
 def javlibrary(str)
     client = Mysql2::Client.new(:host => "127.0.0.1",
                                 :username => "root",
-                                :password => "default",
+                                :password => "XuHefeng",
                                 :database => "javlibrary")
 
     result = client.query("SELECT * FROM video WHERE video.license='#{str}'")
-    return javlibrary_get(str) if result.size == 0 
+    if result.size == 0
+        client.close
+        return javlibrary_get(str)
+    end
 
     information = Hash.new
     result.each do |row|
@@ -82,7 +87,7 @@ def javlibrary(str)
 
         # SQL query and add in string
         cast, genres = String.new, String.new
-        
+
         client.query(cast_sql).each do |cast_item|
             cast << "#{cast_item["actor_name"]} "
         end
@@ -90,11 +95,12 @@ def javlibrary(str)
         client.query(genres_sql).each do |genres_item|
             genres << "#{genres_item["category_name"]} "
         end
-        
+
         information['video_jacket_img'] = row['url']
         information['video_info'] = "ID: #{row['license']}\nDATE: #{row['date']}\nDIRECTOR: #{row['director']}\nMAKER: #{row['maker']}\nLABLE: #{row['label']}\nCAST: #{cast}\nGENRES: #{genres}"
     end
-    
+
+    client.close
     return information
 end
 
@@ -121,6 +127,17 @@ Telegram::Bot::Client.run(TOKEN) do |bot|
                     else
                         bot.api.send_message(chat_id: message.chat.id, text: "Bye,maybe see you next time")
                     end
+                when '/GET@UJNLAOSIJIBOT'
+                    bot.api.send_chat_action(chat_id: message.chat.id, action: "typing")
+
+                    result = btkiki_get(substr[1])
+                    bot.api.send_message(chat_id: message.chat.id, text: "#{result}")
+                    bot.api.send_message(chat_id: message.chat.id, text: "你要的车牌太新啦，还没有收录") if result.size == 0
+                when '/INFO@UJNLAOSIJIBOT'
+                    next if substr[1] == nil
+                    result = javlibrary(substr[1])
+                    bot.api.send_chat_action(chat_id: message.chat.id, action: "upload_photo")
+                    bot.api.send_photo(chat_id: message.chat.id, photo: "#{result['video_jacket_img']}", caption: "#{result['video_info']}")
                 when '/GET'
                     bot.api.send_chat_action(chat_id: message.chat.id, action: "typing")
 
@@ -134,9 +151,7 @@ Telegram::Bot::Client.run(TOKEN) do |bot|
                     bot.api.send_photo(chat_id: message.chat.id, photo: "#{result['video_jacket_img']}", caption: "#{result['video_info']}")
                 end
             rescue Exception => e
-                io = File.open("./log/bot_err.log", "a+")
-                io << e
-                io.close
+                next
             end
         end
     end
