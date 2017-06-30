@@ -64,6 +64,8 @@ def javlibrary(str)
                                 :password => "XuHefeng",
                                 :database => "javlibrary")
 
+    str = client.escape(str)
+    
     result = client.query("SELECT * FROM video WHERE video.license='#{str}'")
     if result.size == 0
         client.close
