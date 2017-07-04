@@ -106,6 +106,32 @@ def javlibrary(str)
     return information
 end
 
+def select_actor(str)
+    client = Mysql2::Client.new(:host => "127.0.0.1",
+                                :username => "root",
+                                :password => "XuHefeng",
+                                :database => "javlibrary")
+
+    str = client.escape(str)
+    result = client.query("SELECT video.license, video.date
+                           FROM actor
+                           INNER JOIN v2a ON v2a.v2a_fk_actor = actor.actor_id
+                           INNER JOIN video ON v2a.v2a_fk_video = video.video_id
+                           WHERE actor_name like '#{str}'
+                           ORDER BY date DESC 
+                           LIMIT 10")
+    client.close; result = result.collect{ |x| x }
+
+    return nil if result.size == 0
+    
+    str = ''
+    result.each do |item|
+        str << item["license"] << " " << item["date"] << "\n"
+    end
+
+    return str.strip    
+end
+
 TOKEN = "343074557:AAHjjNpdWYmmhzm0j4egNeCfUebAPNkvU3k"
 
 Telegram::Bot::Client.run(TOKEN) do |bot|
@@ -151,6 +177,16 @@ Telegram::Bot::Client.run(TOKEN) do |bot|
                     result = javlibrary(substr[1])
                     bot.api.send_chat_action(chat_id: message.chat.id, action: "upload_photo")
                     bot.api.send_photo(chat_id: message.chat.id, photo: "#{result['video_jacket_img']}", caption: "#{result['video_info']}")
+                when '/ACTOR'
+                    result = select_actor(substr[1])
+                    bot.api.send_chat_action(chat_id: message.chat.id, action: "typing")
+                    bot.api.send_message(chat_id: message.chat.id, text: "#{result}") if result != nil
+                    bot.api.send_message(chat_id: message.chat.id, text: "可能需要日文名字?") if result == nil
+                when '/ACTOR@UJNLAOSIJIBOT'
+                    result = select_actor(substr[1])
+                    bot.api.send_chat_action(chat_id: message.chat.id, action: "typing")
+                    bot.api.send_message(chat_id: message.chat.id, text: "#{result}") if result != nil
+                    bot.api.send_message(chat_id: message.chat.id, text: "可能需要日文名字?") if result == nil
                 end
             rescue Exception => e
                 next
