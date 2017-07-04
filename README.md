@@ -24,6 +24,7 @@ In dialog box @ujnphotobot
 ```
 /get  example-001 #Get the magnet link of the AV
 /info example-001 #Get the infomation of the AV
+/actor actor-name #Get the actor latest 10 AV
 ```
 
 # Contact Me
