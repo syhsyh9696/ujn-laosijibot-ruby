@@ -178,11 +178,15 @@ Telegram::Bot::Client.run(TOKEN) do |bot|
                     bot.api.send_chat_action(chat_id: message.chat.id, action: "upload_photo")
                     bot.api.send_photo(chat_id: message.chat.id, photo: "#{result['video_jacket_img']}", caption: "#{result['video_info']}")
                 when '/ACTOR'
+                    next if substr[1] == nil
+                    
                     result = select_actor(substr[1])
                     bot.api.send_chat_action(chat_id: message.chat.id, action: "typing")
                     bot.api.send_message(chat_id: message.chat.id, text: "#{result}") if result != nil
                     bot.api.send_message(chat_id: message.chat.id, text: "可能需要日文名字?") if result == nil
                 when '/ACTOR@UJNLAOSIJIBOT'
+                    next if substr[1] == nil
+                    
                     result = select_actor(substr[1])
                     bot.api.send_chat_action(chat_id: message.chat.id, action: "typing")
                     bot.api.send_message(chat_id: message.chat.id, text: "#{result}") if result != nil
