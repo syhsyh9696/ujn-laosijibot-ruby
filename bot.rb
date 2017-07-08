@@ -4,6 +4,7 @@ require 'telegram/bot'
 require 'nokogiri'
 require 'rest-client'
 require 'mysql2'
+require 'yaml'
 require_relative './lib/unicorn.rb'
 
 def btkiki_get(str)
@@ -132,7 +133,9 @@ def select_actor(str)
     return str.strip    
 end
 
-TOKEN = "343074557:AAHjjNpdWYmmhzm0j4egNeCfUebAPNkvU3k"
+configs = YAML.load(File.read('config.yml'))
+
+TOKEN = configs['telegram']['bot_token']
 
 Telegram::Bot::Client.run(TOKEN) do |bot|
     handle_thread = Thread.new do
