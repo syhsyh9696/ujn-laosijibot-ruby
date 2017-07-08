@@ -12,6 +12,13 @@ gem install bundler # if you don't have
 bundle install
 ```
 
+# Token
+Initialize 'config.yml' in this folder like 
+```yml
+telegram:
+  bot_token: 'YOUR-BOT-TOKEN'
+```
+
 # Launching
 To launch telegram bot
 ```bash
