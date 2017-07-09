@@ -37,6 +37,7 @@ def javlibrary_get(str)
     rescue
         return nil
     end
+    
     doc = Nokogiri::HTML(response.body)
     details, genres, video_genres, video_jacket_img = Array.new, Array.new, String.new, String.new
 
@@ -66,13 +67,16 @@ def javlibrary(str)
                                 :database => "javlibrary")
 
     str = client.escape(str)
-    
-    result = client.query("SELECT * FROM video WHERE video.license='#{str}'")
-    if result.size == 0
-        client.close
-        return javlibrary_get(str)
-    end
 
+    begin 
+        result = client.query("SELECT * FROM video WHERE video.license='#{str}'")
+    rescue # SomeQueryException => some_query_exception
+        client.close
+        return "查询失败"
+    end
+    
+    return javlibrary_get(str) if result.size == 0
+    
     information = Hash.new
     result.each do |row|
         # SQL initialize
@@ -133,6 +137,8 @@ def select_actor(str)
     return str.strip    
 end
 
+
+# Load 'config.yml'
 configs = YAML.load(File.read('config.yml'))
 
 TOKEN = configs['telegram']['bot_token']
