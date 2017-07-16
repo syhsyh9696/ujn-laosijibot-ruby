@@ -92,17 +92,24 @@ def javlibrary(str)
                      INNER JOIN category ON v2c.v2c_fk_category = category.category_id
                      WHERE video.license=\'#{row['license']}\'".chomp
 
-        # SQL query and add in string
+        cast_sql = client.escape(cast_sql); genres_sql = client.escape(genres_sql)
+
+        # SQL query and add in strings
         cast, genres = String.new, String.new
-
-        client.query(cast_sql).each do |cast_item|
-            cast << "#{cast_item["actor_name"]} "
+        
+        begin 
+            client.query(cast_sql).each do |cast_item|
+                cast << "#{cast_item["actor_name"]} "
+            end
+            
+            client.query(genres_sql).each do |genres_item|
+                genres << "#{genres_item["category_name"]} "
+            end            
+        rescue
+            client.close
         end
-
-        client.query(genres_sql).each do |genres_item|
-            genres << "#{genres_item["category_name"]} "
-        end
-
+        
+        # Format the string to hash
         information['video_jacket_img'] = row['url']
         information['video_info'] = "ID: #{row['license']}\nDATE: #{row['date']}\nDIRECTOR: #{row['director']}\nMAKER: #{row['maker']}\nLABLE: #{row['label']}\nCAST: #{cast}\nGENRES: #{genres}"
     end
